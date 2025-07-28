@@ -23,7 +23,7 @@ def extract_text_from_pdf(uploaded_file):
     return text
 
 # ------------------- STEP 2: Generate MCQs ------------------- #
-def generate_mcqs(text, num_questions=10):
+def generate_mcqs(text, num_questions=25):
     prompt = f"""
 You are a professional academic assistant. Read the passage below and generate {num_questions} multiple choice questions.
 
