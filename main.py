@@ -93,6 +93,43 @@ Text:
     else:
         return mcqs
 
+# ------------------- STEP 2.5: Generate Explanation ------------------- #
+def generate_explanation(question, correct_answer, text):
+    prompt = f"""
+Based on the following text, explain why the correct answer to the given question is correct. Include a short example or explanation if applicable.
+
+Text:
+\"\"\"
+{text[:2000]}
+\"\"\"
+
+Question:
+{question}
+
+Correct Answer:
+{correct_answer}
+
+Only return the explanation string. No JSON.
+"""
+    data = {
+        "model": MODEL,
+        "messages": [
+            {"role": "system", "content": "You are a helpful teaching assistant who explains technical questions clearly."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.4
+    }
+
+    response = requests.post(GROQ_API_URL, headers=HEADERS, json=data)
+
+    if response.status_code != 200:
+        return "⚠️ Explanation could not be loaded due to API error."
+
+    try:
+        return response.json()["choices"][0]["message"]["content"].strip()
+    except Exception:
+        return "⚠️ Explanation could not be parsed properly."
+
 # ------------------- STEP 3: Quiz UI ------------------- #
 def run_quiz():
     mcqs = st.session_state.mcqs
@@ -125,7 +162,7 @@ def run_quiz():
     if st.button("Submit Quiz"):
         st.session_state.submitted = True
 
-    # **Put your results display here**
+    # Show results + explanations
     if st.session_state.submitted:
         score = 0
         for i, q in enumerate(mcqs):
@@ -139,10 +176,15 @@ def run_quiz():
             st.markdown(f"- Correct answer: {correct_answer}")
 
             if user_index == correct_index:
-                st.success("Result: ✅ Correct!")
+                st.success("✅ Correct!")
                 score += 1
             else:
-                st.error("Result: ❌ Wrong.")
+                st.error("❌ Wrong.")
+
+            # Get and show explanation
+            with st.spinner("📘 Generating explanation..."):
+                explanation = generate_explanation(q['question'], correct_answer, st.session_state.source_text)
+                st.info(f"💡 Explanation: {explanation}")
             st.write("---")
 
         st.markdown(f"### 🧠 Final Score: {score} / {len(mcqs)}")
@@ -157,6 +199,7 @@ def main():
     if uploaded_file:
         st.info("⏳ Analyzing your PDF...")
         text = extract_text_from_pdf(uploaded_file)
+        st.session_state.source_text = text  # <-- Save the source text for later explanation use
 
         if len(text.strip()) < 100:
             st.warning("The PDF doesn't contain enough text.")
