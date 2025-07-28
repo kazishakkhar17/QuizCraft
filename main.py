@@ -5,8 +5,8 @@ import json
 
 # ------------------- CONFIG ------------------- #
 OPENAI_API_KEY = st.secrets["openai_api_key"]
-OPENAI_API_URL = "https://api.openai.com/v1/responses"
-MODEL = "gpt-4o-mini"
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+MODEL = "gpt-3.5-turbo"  # or gpt-4 if you have access
 
 HEADERS = {
     "Authorization": f"Bearer {OPENAI_API_KEY}",
@@ -24,6 +24,7 @@ def extract_text_from_pdf(uploaded_file):
     return text
 
 # ------------------- STEP 2: Generate MCQs ------------------- #
+@st.cache_data(show_spinner=False)
 def generate_mcqs(text, num_questions=10):
     prompt = f"""
 Generate {num_questions} multiple choice questions from the following text.
@@ -36,15 +37,18 @@ Each question should have:
 Return only the JSON array of questions. No extra text.
 
 Text:
-\"\"\" 
-{text[:3000]}
-\"\"\" 
+\"\"\"{text[:3000]}\"\"\"
 """
 
     data = {
         "model": MODEL,
-        "input": prompt,
-        "store": False
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant that creates medical quiz questions."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 800,
+        "n": 1,
     }
 
     response = requests.post(OPENAI_API_URL, headers=HEADERS, json=data)
@@ -55,14 +59,10 @@ Text:
 
     response_json = response.json()
 
-    if "response" not in response_json:
-        st.error("API response missing 'response' key or returned error.")
-        if "error" in response_json:
-            st.error(f"API error message: {response_json['error'].get('message', 'No message')}")
-        return []
+    # Extract the content of the first choice
+    content = response_json.get("choices", [{}])[0].get("message", {}).get("content", "")
 
-    content = response_json["response"]
-
+    # Attempt to parse JSON from the content
     def extract_json_from_text(text):
         try:
             start = text.index('[')
