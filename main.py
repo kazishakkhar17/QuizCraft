@@ -39,7 +39,7 @@ Guidelines:
 Return only a JSON list of dictionaries with no explanation.
 
 Text:
-\"\"\"{text[:3000]}\"\"\"
+\"\"\"{text[:13000]}\"\"\"
 """
 
     data = {
