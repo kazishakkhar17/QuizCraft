@@ -5,9 +5,8 @@ import json
 
 # ------------------- CONFIG ------------------- #
 OPENAI_API_KEY = st.secrets["openai_api_key"]
-  # Replace with your actual key
-OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
-MODEL = "gpt-3.5-turbo"
+OPENAI_API_URL = "https://api.openai.com/v1/responses"
+MODEL = "gpt-4o-mini"
 
 HEADERS = {
     "Authorization": f"Bearer {OPENAI_API_KEY}",
@@ -37,18 +36,15 @@ Each question should have:
 Return only the JSON array of questions. No extra text.
 
 Text:
-\"\"\"
+\"\"\" 
 {text[:3000]}
-\"\"\"
+\"\"\" 
 """
 
     data = {
         "model": MODEL,
-        "messages": [
-            {"role": "system", "content": "You are a medical quiz generator."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.3
+        "input": prompt,
+        "store": False
     }
 
     response = requests.post(OPENAI_API_URL, headers=HEADERS, json=data)
@@ -59,13 +55,13 @@ Text:
 
     response_json = response.json()
 
-    if "choices" not in response_json:
-        st.error("API response missing 'choices' key or returned error.")
+    if "response" not in response_json:
+        st.error("API response missing 'response' key or returned error.")
         if "error" in response_json:
             st.error(f"API error message: {response_json['error'].get('message', 'No message')}")
         return []
 
-    content = response_json["choices"][0]["message"]["content"]
+    content = response_json["response"]
 
     def extract_json_from_text(text):
         try:
@@ -100,7 +96,6 @@ def run_quiz():
 
     st.subheader("📋 Take the Quiz!")
 
-    # Show all questions with radio buttons and save answers as indices
     for i, q in enumerate(mcqs):
         st.markdown(f"**Q{i+1}. {q['question']}**")
 
@@ -169,4 +164,4 @@ def main():
         run_quiz()
 
 if __name__ == "__main__":
-    main()     in that case exactly what t chnge here
+    main()
