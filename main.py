@@ -23,23 +23,21 @@ def extract_text_from_pdf(uploaded_file):
     return text
 
 # ------------------- STEP 2: Generate MCQs ------------------- #
-def generate_mcqs(text, num_questions=25):
+def generate_mcqs(text, num_questions=15):
     prompt = f"""
-You are a professional academic assistant. Read the passage below and generate {num_questions} multiple choice questions.
+Generate {num_questions} multiple choice questions from the following text.
 
-Guidelines:
-- Use only information from the text.
-- Ensure questions are clear and unambiguous.
-- Mix theoretical and factual questions.
-- Each question must include:
-    - "question": a string
-    - "options": exactly 4 options
-    - "correct_option": index of the correct answer (0 to 3)
+Each question should have:
+- A "question" string
+- An "options" list with exactly 4 options
+- A "correct_option" integer (0-based index)
 
-Return only a JSON list of dictionaries with no explanation.
+Return only the JSON array of questions. No extra text.
 
 Text:
-\"\"\"{text[:13000]}\"\"\"
+\"\"\"
+{text[:13000]}
+\"\"\"
 """
 
     data = {
@@ -58,6 +56,7 @@ Text:
         return []
 
     response_json = response.json()
+    #st.write("API response:", response_json)  # Debug output
 
     if "choices" not in response_json:
         st.error("API response missing 'choices' key or returned error.")
@@ -120,6 +119,7 @@ def run_quiz():
     if st.button("Submit Quiz"):
         st.session_state.submitted = True
 
+    # **Put your results display here**
     if st.session_state.submitted:
         score = 0
         for i, q in enumerate(mcqs):
@@ -141,6 +141,7 @@ def run_quiz():
 
         st.markdown(f"### 🧠 Final Score: {score} / {len(mcqs)}")
 
+
 # ------------------- MAIN APP ------------------- #
 def main():
     st.title("🧠 QuizCraft")
@@ -150,8 +151,6 @@ def main():
     if uploaded_file:
         st.info("⏳ Analyzing your PDF...")
         text = extract_text_from_pdf(uploaded_file)
-
-        st.code(text[:1000])  # <-- Show a snippet for debugging input quality
 
         if len(text.strip()) < 100:
             st.warning("The PDF doesn't contain enough text.")
