@@ -25,22 +25,14 @@ def extract_text_from_pdf(uploaded_file):
 # ------------------- STEP 2: Generate MCQs ------------------- #
 def generate_mcqs(text, num_questions=10):
     prompt = f"""
-From the following text, generate {num_questions} multiple-choice questions that test deep understanding and important concepts.
+Generate {num_questions} multiple choice questions from the following text.
 
-Instructions:
-- Carefully read the content (which may be code or technical explanation).
-- Identify the **core logic**, **critical operations**, or **non-trivial ideas**.
-- For code: include questions on functionality, outputs, bugs, logic flow, registers, memory, conditions, etc.
-- Avoid repeating similar questions or just asking what each function does.
-- Include variety: logic tracing, output prediction, role of instructions, data handling, etc.
-- Don't ask obvious or direct "What does XYZ do?" unless it is crucial to understanding.
+Each question should have:
+- A "question" string
+- An "options" list with exactly 4 options
+- A "correct_option" integer (0-based index)
 
-Each question should be a JSON object with:
-- "question": The actual question text
-- "options": 4 well-thought-out answer choices
-- "correct_option": the 0-based index of the correct choice
-
-Only return a clean JSON array. No extra commentary.
+Return only the JSON array of questions. No extra text.
 
 Text:
 \"\"\"
@@ -51,7 +43,7 @@ Text:
     data = {
         "model": MODEL,
         "messages": [
-            {"role": "system", "content": "You are a quiz generator."},
+            {"role": "system", "content": "You are a medical quiz generator."},
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.3
@@ -64,6 +56,7 @@ Text:
         return []
 
     response_json = response.json()
+    #st.write("API response:", response_json)  # Debug output
 
     if "choices" not in response_json:
         st.error("API response missing 'choices' key or returned error.")
@@ -89,46 +82,10 @@ Text:
 
     if mcqs is None:
         st.error("Failed to parse MCQs from model response.")
+        st.json(response_json)
         return []
     else:
         return mcqs
-
-# ------------------- STEP 2.5: Generate Explanation ------------------- #
-def generate_explanation(question, correct_answer, text):
-    prompt = f"""
-Based on the following text, explain why the correct answer to the given question is correct. Include a short example or explanation if applicable.
-
-Text:
-\"\"\"
-{text[:2000]}
-\"\"\"
-
-Question:
-{question}
-
-Correct Answer:
-{correct_answer}
-
-Only return the explanation string. No JSON.
-"""
-    data = {
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": "You are a helpful teaching assistant who explains technical questions clearly."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.4
-    }
-
-    response = requests.post(GROQ_API_URL, headers=HEADERS, json=data)
-
-    if response.status_code != 200:
-        return "⚠️ Explanation could not be loaded due to API error."
-
-    try:
-        return response.json()["choices"][0]["message"]["content"].strip()
-    except Exception:
-        return "⚠️ Explanation could not be parsed properly."
 
 # ------------------- STEP 3: Quiz UI ------------------- #
 def run_quiz():
@@ -162,7 +119,7 @@ def run_quiz():
     if st.button("Submit Quiz"):
         st.session_state.submitted = True
 
-    # Show results + explanations
+    # **Put your results display here**
     if st.session_state.submitted:
         score = 0
         for i, q in enumerate(mcqs):
@@ -176,15 +133,10 @@ def run_quiz():
             st.markdown(f"- Correct answer: {correct_answer}")
 
             if user_index == correct_index:
-                st.success("✅ Correct!")
+                st.success("Result: ✅ Correct!")
                 score += 1
             else:
-                st.error("❌ Wrong.")
-
-            # Get and show explanation
-            with st.spinner("📘 Generating explanation..."):
-                explanation = generate_explanation(q['question'], correct_answer, st.session_state.source_text)
-                st.info(f"💡 Explanation: {explanation}")
+                st.error("Result: ❌ Wrong.")
             st.write("---")
 
         st.markdown(f"### 🧠 Final Score: {score} / {len(mcqs)}")
@@ -199,7 +151,6 @@ def main():
     if uploaded_file:
         st.info("⏳ Analyzing your PDF...")
         text = extract_text_from_pdf(uploaded_file)
-        st.session_state.source_text = text  # <-- Save the source text for later explanation use
 
         if len(text.strip()) < 100:
             st.warning("The PDF doesn't contain enough text.")
