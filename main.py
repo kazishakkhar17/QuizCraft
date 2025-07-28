@@ -24,15 +24,22 @@ def extract_text_from_pdf(uploaded_file):
 
 # ------------------- STEP 2: Generate MCQs ------------------- #
 def generate_mcqs(text, num_questions=10):
-    prompt = f"""
-Generate {num_questions} multiple choice questions from the following text.
+   prompt = f"""
+Generate {num_questions} meaningful and specific multiple choice questions from the following academic or technical text.
 
-Each question should have:
-- A "question" string
-- An "options" list with exactly 4 options
-- A "correct_option" integer (0-based index)
+Guidelines:
+- Start by identifying the key concepts, functions, processes, or logical steps in the passage.
+- Ask **important, non-trivial** questions that test deep understanding or application of the material.
+- If the content is programming/code, write questions about what the code does, what will be the output, errors, logic, and core concepts.
+- If the content is scientific/theoretical, ask questions that test reasoning, mechanisms, and applied understanding.
+- Avoid obvious definitions or overly basic factual recall unless essential.
 
-Return only the JSON array of questions. No extra text.
+Each question must be structured as a dictionary with:
+- "question": a meaningful, specific question string
+- "options": a list of exactly 4 plausible answer choices
+- "correct_option": an integer (0-based index of the correct option)
+
+Return a pure JSON array. Do **not** include any explanations, preamble, or formatting outside the JSON.
 
 Text:
 \"\"\"
