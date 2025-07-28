@@ -24,7 +24,7 @@ def extract_text_from_pdf(uploaded_file):
 
 # ------------------- STEP 2: Generate MCQs ------------------- #
 def generate_mcqs(text, num_questions=10):
-   prompt = f"""
+    prompt = f"""
 From the following text, generate {num_questions} multiple-choice questions that test deep understanding and important concepts.
 
 Instructions:
@@ -48,7 +48,6 @@ Text:
 \"\"\"
 """
 
-
     data = {
         "model": MODEL,
         "messages": [
@@ -65,7 +64,6 @@ Text:
         return []
 
     response_json = response.json()
-    #st.write("API response:", response_json)  # Debug output
 
     if "choices" not in response_json:
         st.error("API response missing 'choices' key or returned error.")
@@ -91,7 +89,6 @@ Text:
 
     if mcqs is None:
         st.error("Failed to parse MCQs from model response.")
-        st.json(response_json)
         return []
     else:
         return mcqs
