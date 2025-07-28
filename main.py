@@ -43,7 +43,7 @@ Text:
     data = {
         "model": MODEL,
         "messages": [
-            {"role": "system", "content": "You are a medical quiz generator."},
+            {"role": "system", "content": "You are a quiz generator."},
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.3
