@@ -4,11 +4,13 @@ import requests
 import json
 
 # ------------------- CONFIG ------------------- #
-GROQ_API_KEY = "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"  # Replace with your valid key
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL = "llama3-70b-8192"
+OPENAI_API_KEY = st.secrets["openai_api_key"]
+  # Replace with your actual key
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+MODEL = "gpt-3.5-turbo"
+
 HEADERS = {
-    "Authorization": f"Bearer {GROQ_API_KEY}",
+    "Authorization": f"Bearer {OPENAI_API_KEY}",
     "Content-Type": "application/json"
 }
 
@@ -32,9 +34,6 @@ Each question should have:
 - An "options" list with exactly 4 options
 - A "correct_option" integer (0-based index)
 
-Avoid questions that mention specific page numbers, headings, or copy sentences directly. 
-Focus only on relevant,Standard exam-style questions useful for students preparing for professional exams. 
-
 Return only the JSON array of questions. No extra text.
 
 Text:
@@ -52,14 +51,13 @@ Text:
         "temperature": 0.3
     }
 
-    response = requests.post(GROQ_API_URL, headers=HEADERS, json=data)
+    response = requests.post(OPENAI_API_URL, headers=HEADERS, json=data)
 
     if response.status_code != 200:
         st.error(f"API call failed with status {response.status_code}: {response.text}")
         return []
 
     response_json = response.json()
-    #st.write("API response:", response_json)  # Debug output
 
     if "choices" not in response_json:
         st.error("API response missing 'choices' key or returned error.")
@@ -122,7 +120,6 @@ def run_quiz():
     if st.button("Submit Quiz"):
         st.session_state.submitted = True
 
-    # **Put your results display here**
     if st.session_state.submitted:
         score = 0
         for i, q in enumerate(mcqs):
@@ -144,7 +141,6 @@ def run_quiz():
 
         st.markdown(f"### 🧠 Final Score: {score} / {len(mcqs)}")
 
-
 # ------------------- MAIN APP ------------------- #
 def main():
     st.title("🧠 QuizCraft")
@@ -160,7 +156,7 @@ def main():
             return
 
         if st.button("🔍 Start Your Test"):
-            st.info("🧠 Generating questions...Powered By Shakkhar")
+            st.info("🧠 Generating questions... Powered by OpenAI")
             mcqs = generate_mcqs(text)
             if mcqs:
                 st.session_state.mcqs = mcqs
@@ -173,4 +169,4 @@ def main():
         run_quiz()
 
 if __name__ == "__main__":
-    main()
+    main()     in that case exactly what t chnge here
