@@ -25,27 +25,29 @@ def extract_text_from_pdf(uploaded_file):
 # ------------------- STEP 2: Generate MCQs ------------------- #
 def generate_mcqs(text, num_questions=10):
    prompt = f"""
-Generate {num_questions} meaningful and specific multiple choice questions from the following academic or technical text.
+From the following text, generate {num_questions} multiple-choice questions that test deep understanding and important concepts.
 
-Guidelines:
-- Start by identifying the key concepts, functions, processes, or logical steps in the passage.
-- Ask **important, non-trivial** questions that test deep understanding or application of the material.
-- If the content is programming/code, write questions about what the code does, what will be the output, errors, logic, and core concepts.
-- If the content is scientific/theoretical, ask questions that test reasoning, mechanisms, and applied understanding.
-- Avoid obvious definitions or overly basic factual recall unless essential.
+Instructions:
+- Carefully read the content (which may be code or technical explanation).
+- Identify the **core logic**, **critical operations**, or **non-trivial ideas**.
+- For code: include questions on functionality, outputs, bugs, logic flow, registers, memory, conditions, etc.
+- Avoid repeating similar questions or just asking what each function does.
+- Include variety: logic tracing, output prediction, role of instructions, data handling, etc.
+- Don't ask obvious or direct "What does XYZ do?" unless it is crucial to understanding.
 
-Each question must be structured as a dictionary with:
-- "question": a meaningful, specific question string
-- "options": a list of exactly 4 plausible answer choices
-- "correct_option": an integer (0-based index of the correct option)
+Each question should be a JSON object with:
+- "question": The actual question text
+- "options": 4 well-thought-out answer choices
+- "correct_option": the 0-based index of the correct choice
 
-Return a pure JSON array. Do **not** include any explanations, preamble, or formatting outside the JSON.
+Only return a clean JSON array. No extra commentary.
 
 Text:
 \"\"\"
 {text[:3000]}
 \"\"\"
 """
+
 
     data = {
         "model": MODEL,
