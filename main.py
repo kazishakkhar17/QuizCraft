@@ -4,7 +4,7 @@ import requests
 import json
 
 # ------------------- CONFIG ------------------- #
-OPENAI_API_KEY = "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"  # Replace with your actual key
+OPENAI_API_KEY = "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"  # Replace with your actual key
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 MODEL = "gpt-3.5-turbo"
 
