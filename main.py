@@ -8,7 +8,7 @@ import json
 
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]  # Read from Streamlit secrets
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL = "llama3-70b-8192"
+MODEL = "llama-3.3-70b-versatile"   # Updated to supported model
 
 HEADERS = {
     "Authorization": f"Bearer {GROQ_API_KEY}",
